@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
+import { Geist, Geist_Mono, Moirai_One, Zen_Maru_Gothic } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +11,18 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const moiraiOne = Moirai_One({
+  weight: "400",
+  variable: "--font-moirai-one",
+  subsets: ["latin"],
+});
+
+const zenMaruGothic = Zen_Maru_Gothic({
+  weight: "400",
+  variable: "--font-zen-maru-gothic",
+  subsets: ["latin", "latin-ext"],
 });
 
 export const metadata: Metadata = {
@@ -25,8 +38,18 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="caramellatte">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-base-100 text-base-content min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} ${moiraiOne.variable} ${zenMaruGothic.variable} antialiased bg-base-100 text-base-content min-h-screen`}
+        style={{ fontFamily: "var(--font-zen-maru-gothic), sans-serif" }}
       >
+        <header className="navbar bg-base-100 shadow-sm">
+          <Link
+            href="/"
+            className="text-4xl font-extrabold tracking-wide italic drop-shadow-lg"
+            style={{ fontFamily: "var(--font-moirai-one), sans-serif" }}
+          >
+            Happa
+          </Link>
+        </header>
         {children}
       </body>
     </html>

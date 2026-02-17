@@ -5,11 +5,11 @@ import Link from "next/link";
 export default function WaitingPage() {
   return (
     <>
-      <div className="navbar bg-base-100 shadow-sm">
+      {/* <div className="navbar bg-base-100 shadow-sm">
         <Link href="/" className="text-4xl font-extrabold font-serif tracking-wide italic drop-shadow-lg">
           Happa
         </Link>
-      </div>
+      </div> */}
       <main className="flex flex-col items-center justify-center min-h-[80vh] p-4">
         <h1 className="text-2xl font-bold mb-4">待機中</h1>
         <p className="text-base-content/70 mb-8">他のプレイヤーを待っています...</p>
