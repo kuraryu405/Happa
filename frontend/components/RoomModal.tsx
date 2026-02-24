@@ -30,8 +30,13 @@ export default function RoomModal({
       <dialog id={id} className="modal">
         <div className="modal-box">
           <h3 className="font-bold text-lg">{title}</h3>
-          <p className="py-2">合言葉を入力してください</p>
+          <p className="py-2">ニックネームと合言葉を入力してください</p>
           <form method="dialog" className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="ニックネーム"
+              className="input input-bordered w-full"
+            />
             <input
               type="text"
               placeholder={placeholder}
