@@ -1,5 +1,11 @@
 "use client";
 
+import { io } from "socket.io-client";
+import { useState } from "react";
+import { useEffect } from "react";
+
+const socket = io("http://localhost:8000");
+
 type RoomModalProps = {
   id: string;
   title: string;
@@ -17,6 +23,21 @@ export default function RoomModal({
   triggerLabel,
   triggerClassName = "btn btn-accent mt-5 w-1/2 max-w-xs",
 }: RoomModalProps) {
+  const [roomId, setRoomId] = useState("");
+  const [nickname, setNickname] = useState("");
+
+  useEffect(() => {
+    const handleEnterRoom = (roomId: string) => {
+      console.log("enterRoom", roomId);
+    };
+  
+    socket.on("enterRoom", handleEnterRoom);
+  
+    return () => {
+      socket.off("enterRoom", handleEnterRoom); 
+    };
+  }, []);
+
   const openModal = () =>
     (document.getElementById(id) as HTMLDialogElement)?.showModal();
   const closeModal = () =>
@@ -35,11 +56,15 @@ export default function RoomModal({
             <input
               type="text"
               placeholder="ニックネーム"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
               className="input input-bordered w-full"
             />
             <input
               type="text"
               placeholder={placeholder}
+              value={roomId}
+              onChange={(e) => setRoomId(e.target.value)}
               className="input input-bordered w-full"
             />
             <div className="modal-action">
@@ -50,7 +75,13 @@ export default function RoomModal({
               >
                 キャンセル
               </button>
-              <button type="submit" className="btn btn-accent">
+              <button type="submit" className="btn btn-accent"
+              onClick={() =>{
+                socket.emit("enterRoom", {
+                  roomId:  roomId,
+                  nickname: nickname
+                });
+              }}>
                 {submitLabel}
               </button>
             </div>

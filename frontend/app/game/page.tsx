@@ -1,6 +1,9 @@
 "use client";
 
+
+
 export default function GamePage() {
+
   return (
     <>
       <main className="flex flex-col items-center w-full max-w-2xl mx-auto pt-16 px-8">
