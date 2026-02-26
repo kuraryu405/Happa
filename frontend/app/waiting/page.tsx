@@ -1,6 +1,22 @@
 "use client";
 
+import { io } from "socket.io-client";
+import { useState } from "react";
+import { useEffect } from "react";
+
+const socket = io("http://localhost:8000");
+
 export default function WaitingPage() {
+  const [roomId, setRoomId] = useState("");
+  useEffect(() => {
+    socket.on("enterRoom", (roomId: string) => {
+      console.log("enterRoom", roomId);
+    });
+    return () => {
+      socket.off("enterRoom");
+    };
+  }, []);
+  
   return (
     <>
       {/* <div className="navbar bg-base-100 shadow-sm">
@@ -9,7 +25,7 @@ export default function WaitingPage() {
         </Link>
       </div> */}
       <main className="flex flex-col items-center justify-center min-h-[80vh] p-4">
-        <h1 className="text-2xl font-bold mb-4">待機中</h1>
+        <h1 className="text-2xl font-bold mb-4">待機中({roomId})</h1>
         <p className="text-base-content/70 mb-8">他のプレイヤーを待っています...</p>
         <div className="flex flex-col gap-2 w-full max-w-xs items-center justify-center">
           <div className="badge badge-lg badge-accent">null 人が参加中...</div>
