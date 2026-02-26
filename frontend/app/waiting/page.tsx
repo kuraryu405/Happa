@@ -1,37 +1,59 @@
 "use client";
 
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import { useState } from "react";
-import { useEffect } from "react";
 
 const socket = io("http://localhost:8000");
 
 export default function WaitingPage() {
-  const [roomId, setRoomId] = useState("");
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("roomId") ?? "";
+  const nickname = searchParams.get("nickname") ?? "";
+  const [participants, setParticipants] = useState<string[]>([]);
+  const router = useRouter();
+
   useEffect(() => {
-    socket.on("enterRoom", (roomId: string) => {
-      console.log("enterRoom", roomId);
-    });
-    return () => {
-      socket.off("enterRoom");
+    const handleRoomUpdate = (list: string[]) => {
+      setParticipants(list);
     };
-  }, []);
-  
+    socket.on("roomUpdate", handleRoomUpdate);
+
+    socket.emit("joinRoom", { roomId, nickname });
+
+    return () => {
+      socket.off("roomUpdate", handleRoomUpdate);
+    };
+  }, [roomId, nickname]);
+
   return (
     <>
-      {/* <div className="navbar bg-base-100 shadow-sm">
-        <Link href="/" className="text-4xl font-extrabold font-serif tracking-wide italic drop-shadow-lg">
-          Happa
-        </Link>
-      </div> */}
       <main className="flex flex-col items-center justify-center min-h-[80vh] p-4">
-        <h1 className="text-2xl font-bold mb-4">待機中({roomId})</h1>
-        <p className="text-base-content/70 mb-8">他のプレイヤーを待っています...</p>
-        <div className="flex flex-col gap-2 w-full max-w-xs items-center justify-center">
-          <div className="badge badge-lg badge-accent">null 人が参加中...</div>
+        <h1 className="text-2xl font-bold mb-4">待機中</h1>
+        <p className="text-base-content/70 mb-4">他のプレイヤーを待っています...<br />合言葉は"{roomId}"です</p>
+        <div className="flex flex-col gap-2 w-full max-w-xs items-center justify-center mb-4">
+          <div className="badge badge-lg badge-accent">{participants.length} 人が参加中</div>
         </div>
+        <ul className="list bg-base-100 rounded-box shadow-lg w-full max-w-xs mb-4">
+          <li className="p-4 pb-2 text-xs opacity-60 tracking-wide">参加者</li>
+          {participants.map((name, index) => (
+            <li key={index} className="list-row px-4 py-2">
+              <div className="flex items-center gap-3">
+                <div className="avatar placeholder">
+                  <div className="bg-accent text-accent-content rounded-full w-8">
+                    <span className="text-sm">{name[0]}</span>
+                  </div>
+                </div>
+                <span>{name}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
         <div className="flex items-center justify-center gap-4">
-          <button className="btn btn-outline mt-5 w-1/2 max-w-xs">退出</button>
+          <button className="btn btn-outline mt-5 w-1/2 max-w-xs" onClick={() => {
+            socket.emit("leaveRoom", roomId);
+            router.push("/");
+          }}>退出</button>
           <button className="btn btn-accent mt-5 w-1/2 max-w-xs">開始</button>
         </div>
       </main>

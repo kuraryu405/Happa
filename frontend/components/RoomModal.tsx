@@ -1,8 +1,8 @@
 "use client";
 
 import { io } from "socket.io-client";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const socket = io("http://localhost:8000");
 
@@ -25,18 +25,19 @@ export default function RoomModal({
 }: RoomModalProps) {
   const [roomId, setRoomId] = useState("");
   const [nickname, setNickname] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
-    const handleEnterRoom = (roomId: string) => {
-      console.log("enterRoom", roomId);
+    const handleEnterRoom = (receivedRoomId: string) => {
+      router.push(`/waiting?roomId=${receivedRoomId}&nickname=${encodeURIComponent(nickname)}`);
     };
   
     socket.on("enterRoom", handleEnterRoom);
   
     return () => {
-      socket.off("enterRoom", handleEnterRoom); 
+      socket.off("enterRoom", handleEnterRoom);
     };
-  }, []);
+  }, [router, nickname]);
 
   const openModal = () =>
     (document.getElementById(id) as HTMLDialogElement)?.showModal();

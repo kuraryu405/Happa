@@ -1,24 +1,66 @@
-import { SubscribeMessage, WebSocketGateway, MessageBody,WebSocketServer} from "@nestjs/websockets";
-import { Server } from "socket.io";
+import { SubscribeMessage, WebSocketGateway, MessageBody, WebSocketServer, ConnectedSocket, OnGatewayDisconnect } from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
+
 @WebSocketGateway({
   cors: {
     origin: "http://localhost:3000",
   }
 })
-export class EvantsGateway{
+export class EvantsGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  @SubscribeMessage("message")
-  handleMessage(@MessageBody() body:string){
-    this.server.emit("update", `Hello socket.io ${body}'をクライアントから受け取った'`);
+  private rooms = new Map<string, { socketId: string; nickname: string }[]>();
 
+  @SubscribeMessage("message")
+  handleMessage(@MessageBody() body: string) {
+    this.server.emit("update", `Hello socket.io ${body}'をクライアントから受け取った'`);
   }
-  
-  // 部屋に入れる処理
+
   @SubscribeMessage("enterRoom")
-  handleEnterRoom(@MessageBody() body: { roomId: string; nickname: string }) {
-    this.server.emit("enterRoom", body.roomId);  
+  handleEnterRoom(@MessageBody() body: { roomId: string; nickname: string }, @ConnectedSocket() client: Socket) {
+    client.emit("enterRoom", body.roomId);
+  }
+
+  @SubscribeMessage("joinRoom")
+  handleJoinRoom(@MessageBody() body: { roomId: string; nickname: string }, @ConnectedSocket() client: Socket) {
+    client.join(body.roomId);
+    const participants = this.rooms.get(body.roomId) ?? [];
+    const alreadyJoined = participants.some(p => p.socketId === client.id);
+    if (!alreadyJoined) {
+      participants.push({ socketId: client.id, nickname: body.nickname });
+      this.rooms.set(body.roomId, participants);
+    }
+    this.server.to(body.roomId).emit("roomUpdate", participants.map(p => p.nickname));
+  }
+
+  @SubscribeMessage("leaveRoom")
+  handleLeaveRoom(@MessageBody() roomId: string, @ConnectedSocket() client: Socket) {
+    client.leave(roomId);
+    const participants = this.rooms.get(roomId) ?? [];
+    const updated = participants.filter(p => p.socketId !== client.id);
+    if (updated.length === 0) {
+      this.rooms.delete(roomId);
+    } else {
+      this.rooms.set(roomId, updated);
+      this.server.to(roomId).emit("roomUpdate", updated.map(p => p.nickname));
+    }
+  }
+
+  handleDisconnect(client: Socket) {
+    for (const [roomId, participants] of this.rooms.entries()) {
+      const index = participants.findIndex(p => p.socketId === client.id);
+      if (index !== -1) {
+        participants.splice(index, 1);
+        if (participants.length === 0) {
+          this.rooms.delete(roomId);
+        } else {
+          this.rooms.set(roomId, participants);
+          this.server.to(roomId).emit("roomUpdate", participants.map(p => p.nickname));
+        }
+        break;
+      }
+    }
   }
 }
 
