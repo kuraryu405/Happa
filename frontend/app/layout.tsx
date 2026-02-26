@@ -41,7 +41,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${moiraiOne.variable} ${zenMaruGothic.variable} antialiased bg-base-100 text-base-content min-h-screen`}
         style={{ fontFamily: "var(--font-zen-maru-gothic), sans-serif" }}
       >
-        <header className="navbar bg-base-100 shadow-sm">
+        <header className="navbar bg-base-100 shadow-sm fixed top-0 left-0 w-full z-50">
           <Link
             href="/"
             className="text-4xl font-extrabold tracking-wide italic drop-shadow-lg"
@@ -50,8 +50,10 @@ export default function RootLayout({
             Happa
           </Link>
         </header>
-        {children}
-        <div className="dock">
+        <div className="pt-16 pb-20">
+          {children}
+        </div>
+        <div className="dock z-50">
     <button>
       <svg className="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <g fill="currentColor" strokeLinejoin="miter" strokeLinecap="butt">
@@ -86,7 +88,7 @@ export default function RootLayout({
       <span className="dock-label">Home</span>
     </button>
 
-    <button className="//dock-active">
+    <button>
       <svg className="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <g fill="currentColor" strokeLinejoin="miter" strokeLinecap="butt">
           <polyline
