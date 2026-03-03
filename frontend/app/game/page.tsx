@@ -21,6 +21,7 @@ function leaveAndClean() {
 
 export default function GamePage() {
   const [phase, setPhase] = useState<GamePhase | "error" | null>(null);
+  const [questionText, setQuestionText] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -31,9 +32,16 @@ export default function GamePage() {
       setPhase("error");
     }
 
+    const handleQuestion = (q: string) => {
+      setQuestionText(q);
+      setPhase("answer");
+    };
+    socket.on("question", handleQuestion);
+
     const handleBeforeUnload = () => leaveAndClean();
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
+      socket.off("question", handleQuestion);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
@@ -60,7 +68,7 @@ export default function GamePage() {
   return (
     <>
       {phase === "question" && <QuestionPage />}
-      {phase === "answer" && <AnswerPage />}
+      {phase === "answer" && <AnswerPage initialQuestion={questionText} />}
       {phase === "result" && <ResultPage />}
     </>
   );

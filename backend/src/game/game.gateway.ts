@@ -72,4 +72,9 @@ export class EvantsGateway implements OnGatewayDisconnect {
     this.server.to(roomId).except(questioner.socketId).emit("yourRole", "answer");
     this.server.to(roomId).emit("gameStart");
   }
+
+  @SubscribeMessage("askQuestion")
+  handleAskQuestion(@MessageBody() body: { roomId: string; question: string }) {
+    this.server.to(body.roomId).emit("question", body.question);
+  }
 }
