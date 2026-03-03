@@ -1,10 +1,8 @@
 "use client";
 
-import { io } from "socket.io-client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-const socket = io("http://localhost:8000");
+import { socket } from "@/lib/socket";
 
 type RoomModalProps = {
   id: string;
