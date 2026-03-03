@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
@@ -16,14 +16,20 @@ export default function WaitingPage() {
     const handleRoomUpdate = (list: string[]) => {
       setParticipants(list);
     };
+    const handleGameStart = () => {
+      router.push("/game");
+    };
     socket.on("roomUpdate", handleRoomUpdate);
+    socket.on("gameStart", handleGameStart);
 
     socket.emit("joinRoom", { roomId, nickname });
 
     return () => {
       socket.off("roomUpdate", handleRoomUpdate);
+      socket.off("gameStart", handleGameStart);
     };
-  }, [roomId, nickname]);
+
+  }, [roomId, nickname, router]);
 
   return (
     <>
@@ -55,7 +61,7 @@ export default function WaitingPage() {
           }}>退出</button>
           <button className="btn btn-accent w-1/2"
           onClick={() => {
-            router.push("/game");
+            socket.emit("startGame", roomId);
           }}>開始</button>
         </div>
       </main>
