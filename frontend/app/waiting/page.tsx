@@ -7,9 +7,8 @@ import { io } from "socket.io-client";
 const socket = io("http://localhost:8000");
 
 export default function WaitingPage() {
-  const searchParams = useSearchParams();
-  const roomId = searchParams.get("roomId") ?? "";
-  const nickname = searchParams.get("nickname") ?? "";
+  const roomId = sessionStorage.getItem("roomId");
+  const nickname = sessionStorage.getItem("nickname");
   const [participants, setParticipants] = useState<string[]>([]);
   const router = useRouter();
 
@@ -54,7 +53,10 @@ export default function WaitingPage() {
             socket.emit("leaveRoom", roomId);
             router.push("/");
           }}>退出</button>
-          <button className="btn btn-accent w-1/2">開始</button>
+          <button className="btn btn-accent w-1/2"
+          onClick={() => {
+            router.push("/game");
+          }}>開始</button>
         </div>
       </main>
     </>

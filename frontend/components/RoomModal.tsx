@@ -28,8 +28,8 @@ export default function RoomModal({
   const router = useRouter();
 
   useEffect(() => {
-    const handleEnterRoom = (receivedRoomId: string) => {
-      router.push(`/waiting?roomId=${receivedRoomId}&nickname=${encodeURIComponent(nickname)}`);
+    const handleEnterRoom = () => {
+      router.push(`/waiting`);
     };
   
     socket.on("enterRoom", handleEnterRoom);
@@ -82,6 +82,8 @@ export default function RoomModal({
                   roomId:  roomId,
                   nickname: nickname
                 });
+                sessionStorage.setItem("roomId", roomId)
+                sessionStorage.setItem("nickname", nickname)
               }}>
                 {submitLabel}
               </button>
