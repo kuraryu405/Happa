@@ -39,11 +39,11 @@ export default function WaitingPage() {
           {participants.map((name, index) => (
             <li key={index} className="list-row px-4 py-2">
               <div className="flex items-center gap-3">
-                <div className="avatar placeholder">
+                {/* <div className="avatar placeholder">
                   <div className="bg-accent text-accent-content rounded-full w-8">
                     <span className="text-sm">{name[0]}</span>
                   </div>
-                </div>
+                </div> */}
                 <span>{name}</span>
               </div>
             </li>
