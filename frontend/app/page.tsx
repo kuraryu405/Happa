@@ -1,9 +1,21 @@
 "use client";
 
+import { useEffect } from "react";
+import { socket } from "@/lib/socket";
 import RoomModal from "@/components/RoomModal";
 
 
 export default function Home() {
+  useEffect(() => {
+    const staleRoom = sessionStorage.getItem("roomId");
+    if (staleRoom) {
+      socket.emit("leaveRoom", staleRoom);
+      sessionStorage.removeItem("roomId");
+      sessionStorage.removeItem("nickname");
+      sessionStorage.removeItem("role");
+    }
+  }, []);
+
   return (
     <>
       {/* <div className="navbar bg-base-100 shadow-sm">

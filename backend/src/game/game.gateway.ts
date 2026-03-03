@@ -68,8 +68,8 @@ export class EvantsGateway implements OnGatewayDisconnect {
     if (!participants || participants.length === 0) return;
     const questioner = participants[Math.floor(Math.random() * participants.length)];
   
-    this.server.to(questioner.socketId).emit("yourRole", "answer");
-    this.server.to(roomId).except(questioner.socketId).emit("yourRole", "question");
+    this.server.to(questioner.socketId).emit("yourRole", "question");
+    this.server.to(roomId).except(questioner.socketId).emit("yourRole", "answer");
     this.server.to(roomId).emit("gameStart");
   }
 }

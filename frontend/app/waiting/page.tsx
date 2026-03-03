@@ -14,16 +14,21 @@ export default function WaitingPage() {
     const handleRoomUpdate = (list: string[]) => {
       setParticipants(list);
     };
+    const handleYourRole = (role: "question" | "answer") => {
+      sessionStorage.setItem("role", role);
+    };
     const handleGameStart = () => {
       router.push("/game");
     };
     socket.on("roomUpdate", handleRoomUpdate);
+    socket.on("yourRole", handleYourRole);
     socket.on("gameStart", handleGameStart);
 
     socket.emit("joinRoom", { roomId, nickname });
 
     return () => {
       socket.off("roomUpdate", handleRoomUpdate);
+      socket.off("yourRole", handleYourRole);
       socket.off("gameStart", handleGameStart);
     };
 
@@ -55,10 +60,14 @@ export default function WaitingPage() {
         <div className="sticky bottom-4 flex items-center justify-center gap-4 w-full max-w-xs bg-base-100 pt-2 pb-1">
           <button className="btn btn-outline w-1/2" onClick={() => {
             socket.emit("leaveRoom", roomId);
+            sessionStorage.removeItem("roomId");
+            sessionStorage.removeItem("nickname");
+            sessionStorage.removeItem("role");
             router.push("/");
           }}>退出</button>
           <button className="btn btn-accent w-1/2"
           onClick={() => {
+            sessionStorage.removeItem("role");//前回のゲームのroleを破棄するのに必要
             socket.emit("startGame", roomId);
           }}>開始</button>
         </div>
