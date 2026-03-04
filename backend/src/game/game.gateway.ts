@@ -11,6 +11,8 @@ export class EvantsGateway implements OnGatewayDisconnect {
   server: Server;
 
   private rooms = new Map<string, { socketId: string; nickname: string }[]>();
+  private roomContexts = new Map<string, string>();
+  private roomAdmins = new Map<string, string>();
 
   @SubscribeMessage("message")
   handleMessage(@MessageBody() body: string) {
@@ -18,7 +20,25 @@ export class EvantsGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage("enterRoom")
-  handleEnterRoom(@MessageBody() body: { roomId: string; nickname: string }, @ConnectedSocket() client: Socket) {
+  handleEnterRoom(@MessageBody() body: { roomId: string; nickname: string; context?: string; mode: "create" | "join" }, @ConnectedSocket() client: Socket) {
+    const roomExists = this.roomAdmins.has(body.roomId);
+
+    if (body.mode === "create" && roomExists) {
+      client.emit("enterRoomError", "このルームは使用中です");
+      return;
+    }
+    if (body.mode === "join" && !roomExists) {
+      client.emit("enterRoomError", "ルームが見つかりません");
+      return;
+    }
+
+    if (body.mode === "create") {
+      this.roomAdmins.set(body.roomId, client.id);
+      if (body.context) {
+        this.roomContexts.set(body.roomId, body.context);
+      }
+    }
+
     client.emit("enterRoom", body.roomId);
   }
 
@@ -32,6 +52,14 @@ export class EvantsGateway implements OnGatewayDisconnect {
       this.rooms.set(body.roomId, participants);
     }
     this.server.to(body.roomId).emit("roomUpdate", participants.map(p => p.nickname));
+
+    const ctx = this.roomContexts.get(body.roomId);
+    if (ctx) {
+      client.emit("roomContext", ctx);
+    }
+
+    const isAdmin = this.roomAdmins.get(body.roomId) === client.id;
+    client.emit("yourAdmin", isAdmin);
   }
 
   @SubscribeMessage("leaveRoom")
@@ -41,6 +69,8 @@ export class EvantsGateway implements OnGatewayDisconnect {
     const updated = participants.filter(p => p.socketId !== client.id);
     if (updated.length === 0) {
       this.rooms.delete(roomId);
+      this.roomContexts.delete(roomId);
+      this.roomAdmins.delete(roomId);
     } else {
       this.rooms.set(roomId, updated);
       this.server.to(roomId).emit("roomUpdate", updated.map(p => p.nickname));
@@ -54,6 +84,8 @@ export class EvantsGateway implements OnGatewayDisconnect {
         participants.splice(index, 1);
         if (participants.length === 0) {
           this.rooms.delete(roomId);
+          this.roomContexts.delete(roomId);
+          this.roomAdmins.delete(roomId);
         } else {
           this.rooms.set(roomId, participants);
           this.server.to(roomId).emit("roomUpdate", participants.map(p => p.nickname));
@@ -63,7 +95,8 @@ export class EvantsGateway implements OnGatewayDisconnect {
     }
   }
   @SubscribeMessage("startGame")
-  handleStartGame(@MessageBody() roomId: string) {
+  handleStartGame(@MessageBody() roomId: string, @ConnectedSocket() client: Socket) {
+    if (this.roomAdmins.get(roomId) !== client.id) return;
     const participants = this.rooms.get(roomId);
     if (!participants || participants.length === 0) return;
     const questioner = participants[Math.floor(Math.random() * participants.length)];

@@ -8,6 +8,7 @@ export default function WaitingPage() {
   const roomId = sessionStorage.getItem("roomId");
   const nickname = sessionStorage.getItem("nickname");
   const [participants, setParticipants] = useState<string[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -20,9 +21,18 @@ export default function WaitingPage() {
     const handleGameStart = () => {
       router.push("/game");
     };
+    const handleRoomContext = (ctx: string) => {
+      sessionStorage.setItem("context", ctx);
+    };
+    const handleYourAdmin = (admin: boolean) => {
+      setIsAdmin(admin);
+      sessionStorage.setItem("isAdmin", String(admin));
+    };
     socket.on("roomUpdate", handleRoomUpdate);
     socket.on("yourRole", handleYourRole);
     socket.on("gameStart", handleGameStart);
+    socket.on("roomContext", handleRoomContext);
+    socket.on("yourAdmin", handleYourAdmin);
 
     socket.emit("joinRoom", { roomId, nickname });
 
@@ -30,6 +40,8 @@ export default function WaitingPage() {
       socket.off("roomUpdate", handleRoomUpdate);
       socket.off("yourRole", handleYourRole);
       socket.off("gameStart", handleGameStart);
+      socket.off("roomContext", handleRoomContext);
+      socket.off("yourAdmin", handleYourAdmin);
     };
 
   }, [roomId, nickname, router]);
@@ -65,11 +77,13 @@ export default function WaitingPage() {
             sessionStorage.removeItem("role");
             router.push("/");
           }}>退出</button>
-          <button className="btn btn-accent w-1/2"
-          onClick={() => {
-            sessionStorage.removeItem("role");//前回のゲームのroleを破棄するのに必要
-            socket.emit("startGame", roomId);
-          }}>開始</button>
+          {isAdmin && (
+            <button className="btn btn-accent w-1/2"
+            onClick={() => {
+              sessionStorage.removeItem("role");
+              socket.emit("startGame", roomId);
+            }}>開始</button>
+          )}
         </div>
       </main>
     </>

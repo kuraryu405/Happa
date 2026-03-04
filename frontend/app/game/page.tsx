@@ -23,6 +23,7 @@ export default function GamePage() {
   const [phase, setPhase] = useState<GamePhase | "error" | null>(null);
   const [questionText, setQuestionText] = useState("");
   const [result, setResult] = useState<{ yes: number; no: number; total: number; percent: number } | null>(null);
+  const [isAdmin] = useState(() => sessionStorage.getItem("isAdmin") === "true");
 
   const router = useRouter();
 
@@ -62,7 +63,7 @@ export default function GamePage() {
     return () => {
       socket.off("yourRole", handleYourRole);
       socket.off("question", handleQuestion);
-      socket.off("result", handleResult);  
+      socket.off("result", handleResult);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
@@ -98,7 +99,7 @@ export default function GamePage() {
       {phase === "question" && <QuestionPage />}
       {phase === "answer" && <AnswerPage initialQuestion={questionText} />}
       {phase === "result" && (
-        <ResultPage resultData={result} question={questionText} onPlayAgain={handlePlayAgain} />
+        <ResultPage resultData={result} question={questionText} onPlayAgain={handlePlayAgain} isAdmin={isAdmin} />
       )}
     </>
   );

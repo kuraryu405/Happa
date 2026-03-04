@@ -28,8 +28,11 @@ export default function QuestionPage() {
             setQuestion('AIで質問を生成中（10秒ほどかかります。）');
             try {
               //ここのlocalhostは後でenvに書く
+              const context = sessionStorage.getItem("context") ?? "";
               const response = await fetch("http://localhost:8000/question", {
                 method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ context }),
               });
               if (!response.ok) {
                 const err = await response.json();

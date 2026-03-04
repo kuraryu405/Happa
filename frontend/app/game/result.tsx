@@ -6,10 +6,11 @@ type ResultPageProps = {
   resultData: { yes: number; no: number; total: number; percent: number } | null;
   question: string;
   onPlayAgain: () => void;
+  isAdmin: boolean;
 };
 
 
-export default function ResultPage({ resultData, question, onPlayAgain }: ResultPageProps) {
+export default function ResultPage({ resultData, question, onPlayAgain, isAdmin }: ResultPageProps) {
   const router = useRouter();
   return (
     <>
@@ -40,7 +41,7 @@ export default function ResultPage({ resultData, question, onPlayAgain }: Result
           <button className="btn btn-outline" onClick={() => {
             router.push("/");
           }}>トップに戻る</button>
-          <button className="btn btn-accent" onClick={onPlayAgain}>もう一度遊ぶ</button>
+          {isAdmin && <button className="btn btn-accent" onClick={onPlayAgain}>もう一度遊ぶ</button>}
         </div>
       </main>
     </>

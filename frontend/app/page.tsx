@@ -31,12 +31,14 @@ export default function Home() {
           title="ルームを作成"
           submitLabel="作成"
           triggerLabel="ルームを作成"
+          mode="create"
         />
         <RoomModal
           id="join_room_modal"
           title="ルームに入室"
           submitLabel="入室"
           triggerLabel="ルームに入室"
+          mode="join"
         />
       </div>
     </>
