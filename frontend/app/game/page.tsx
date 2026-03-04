@@ -22,6 +22,8 @@ function leaveAndClean() {
 export default function GamePage() {
   const [phase, setPhase] = useState<GamePhase | "error" | null>(null);
   const [questionText, setQuestionText] = useState("");
+  const [result, setResult] = useState<{ yes: number; no: number; total: number; percent: number } | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -31,17 +33,25 @@ export default function GamePage() {
     } else {
       setPhase("error");
     }
-
+  
     const handleQuestion = (q: string) => {
       setQuestionText(q);
       setPhase("answer");
     };
     socket.on("question", handleQuestion);
-
+  
+    const handleResult = (data: { yes: number; no: number; total: number; percent: number }) => {
+      setResult(data);
+      setPhase("result");
+    };
+    socket.on("result", handleResult);
+  
     const handleBeforeUnload = () => leaveAndClean();
     window.addEventListener("beforeunload", handleBeforeUnload);
+  
     return () => {
       socket.off("question", handleQuestion);
+      socket.off("result", handleResult);  
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
@@ -69,7 +79,7 @@ export default function GamePage() {
     <>
       {phase === "question" && <QuestionPage />}
       {phase === "answer" && <AnswerPage initialQuestion={questionText} />}
-      {phase === "result" && <ResultPage />}
+      {phase === "result" && <ResultPage resultData={result} question={questionText} />}
     </>
   );
 }

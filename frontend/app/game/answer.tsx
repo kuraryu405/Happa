@@ -7,8 +7,12 @@ type AnswerPageProps = {
   initialQuestion?: string;
 };
 
+const roomId = sessionStorage.getItem("roomId");
+
+
 export default function AnswerPage({ initialQuestion = "" }: AnswerPageProps) {
   const [question, setQuestion] = useState<string>(initialQuestion);
+  const [answered, setAnswered] = useState<boolean>(false);
 
   useEffect(() => {
     const handleQuestion = (q: string) => {
@@ -30,8 +34,18 @@ export default function AnswerPage({ initialQuestion = "" }: AnswerPageProps) {
         </div>
         {question && (
           <div className="flex items-center gap-8 pt-20">
-            <button className="btn btn-outline text-2xl px-10 py-5 min-w-[120px]">NO</button>
-            <button className="btn btn-accent text-2xl px-10 py-5 min-w-[120px]">YES</button>
+            <button className="btn btn-outline text-2xl px-10 py-5 min-w-[120px]"
+            disabled={answered}
+            onClick={() => {
+              socket.emit("submitAnswer", { roomId, answer: "no" });
+              setAnswered(true);
+            }}>NO</button>
+            <button className="btn btn-accent text-2xl px-10 py-5 min-w-[120px]"
+            disabled={answered}
+            onClick={() => {
+              socket.emit("submitAnswer", { roomId, answer: "yes" });
+              setAnswered(true);
+            }}>YES</button>
           </div>
         )}
       </main>

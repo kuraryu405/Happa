@@ -77,4 +77,26 @@ export class EvantsGateway implements OnGatewayDisconnect {
   handleAskQuestion(@MessageBody() body: { roomId: string; question: string }) {
     this.server.to(body.roomId).emit("question", body.question);
   }
+
+  private votes = new Map<string, { yes: number; no: number; total: number; expected: number }>();
+
+  @SubscribeMessage("submitAnswer")
+  handleSubmitAnswer(@MessageBody() body: { roomId: string; answer: "yes" | "no" }, @ConnectedSocket() client: Socket) {
+    const participants = this.rooms.get(body.roomId);
+    if (!participants) return;
+    const expectedAnswers = participants.length;
+    if (!this.votes.has(body.roomId)) {
+      this.votes.set(body.roomId, { yes: 0, no: 0, total: 0, expected: expectedAnswers });
+    }
+    const vote = this.votes.get(body.roomId)!;
+    if (body.answer === "yes") vote.yes++;
+    else vote.no++;
+    vote.total++;
+
+    const percent = (vote.yes / vote.total) * 100;
+    if (vote.total >= vote.expected) {
+      this.server.to(body.roomId).emit("result", { yes: vote.yes, no: vote.no, total: vote.total, percent: percent});
+      this.votes.delete(body.roomId);
+    }
+  }
 }

@@ -22,7 +22,21 @@ export default function QuestionPage() {
           placeholder="質問を入力してください"
         />
         <div className="w-full h-auto flex justify-end gap-2">
-          <button className="btn btn-accent">AIで生成</button>
+        <button
+          className="btn btn-accent"
+          onClick={async () => {
+            setQuestion('AIで質問を生成中（10秒ほどかかります。）')
+            //ここのlocalhostは後でenvに書く
+            const response = await fetch("http://localhost:8000/question", {
+              method: "POST",
+            });
+            const data = await response.json();
+            //textareaに表示
+            setQuestion(data.question);
+          }}
+        >
+          AIで生成
+        </button>
           <button className="btn btn-accent" onClick={handleSubmit}>
             質問する！
           </button>
