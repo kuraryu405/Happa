@@ -1,11 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 type ResultPageProps = {
   resultData: { yes: number; no: number; total: number; percent: number } | null;
   question: string;
+  onPlayAgain: () => void;
 };
 
-export default function ResultPage({ resultData, question }: ResultPageProps) {
+
+export default function ResultPage({ resultData, question, onPlayAgain }: ResultPageProps) {
+  const router = useRouter();
   return (
     <>
       <main className="flex flex-col items-center w-full max-w-2xl mx-auto pt-16 px-8">
@@ -30,6 +35,12 @@ export default function ResultPage({ resultData, question }: ResultPageProps) {
               <p className="text-2xl font-bold">YES: {resultData?.yes ?? 0}人</p>
             </div>
           </div>
+        </div>
+        <div className="buttons flex justify-center gap-4 pt-10">
+          <button className="btn btn-outline" onClick={() => {
+            router.push("/");
+          }}>トップに戻る</button>
+          <button className="btn btn-accent" onClick={onPlayAgain}>もう一度遊ぶ</button>
         </div>
       </main>
     </>

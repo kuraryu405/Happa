@@ -34,6 +34,16 @@ export default function GamePage() {
       setPhase("error");
     }
   
+    const handleYourRole = (newRole: string) => {
+      sessionStorage.setItem("role", newRole);
+      setResult(null);
+      setQuestionText("");
+      if (newRole === "question" || newRole === "answer") {
+        setPhase(newRole);
+      }
+    };
+    socket.on("yourRole", handleYourRole);
+
     const handleQuestion = (q: string) => {
       setQuestionText(q);
       setPhase("answer");
@@ -50,6 +60,7 @@ export default function GamePage() {
     window.addEventListener("beforeunload", handleBeforeUnload);
   
     return () => {
+      socket.off("yourRole", handleYourRole);
       socket.off("question", handleQuestion);
       socket.off("result", handleResult);  
       window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -75,11 +86,20 @@ export default function GamePage() {
     return <main className="flex items-center justify-center min-h-screen">ロールを確認中...</main>;
   }
 
+  const handlePlayAgain = () => {
+    const roomId = sessionStorage.getItem("roomId");
+    if (roomId) {
+      socket.emit("startGame", roomId);
+    }
+  };
+
   return (
     <>
       {phase === "question" && <QuestionPage />}
       {phase === "answer" && <AnswerPage initialQuestion={questionText} />}
-      {phase === "result" && <ResultPage resultData={result} question={questionText} />}
+      {phase === "result" && (
+        <ResultPage resultData={result} question={questionText} onPlayAgain={handlePlayAgain} />
+      )}
     </>
   );
 }

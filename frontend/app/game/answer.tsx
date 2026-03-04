@@ -7,10 +7,8 @@ type AnswerPageProps = {
   initialQuestion?: string;
 };
 
-const roomId = sessionStorage.getItem("roomId");
-
-
 export default function AnswerPage({ initialQuestion = "" }: AnswerPageProps) {
+  const roomId = sessionStorage.getItem("roomId");
   const [question, setQuestion] = useState<string>(initialQuestion);
   const [answered, setAnswered] = useState<boolean>(false);
 
