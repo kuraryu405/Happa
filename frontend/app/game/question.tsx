@@ -25,14 +25,22 @@ export default function QuestionPage() {
         <button
           className="btn btn-accent"
           onClick={async () => {
-            setQuestion('AIで質問を生成中（10秒ほどかかります。）')
-            //ここのlocalhostは後でenvに書く
-            const response = await fetch("http://localhost:8000/question", {
-              method: "POST",
-            });
-            const data = await response.json();
-            //textareaに表示
-            setQuestion(data.question);
+            setQuestion('AIで質問を生成中（10秒ほどかかります。）');
+            try {
+              //ここのlocalhostは後でenvに書く
+              const response = await fetch("http://localhost:8000/question", {
+                method: "POST",
+              });
+              if (!response.ok) {
+                const err = await response.json();
+                setQuestion(err.message ?? 'エラーが発生しました。');
+                return;
+              }
+              const data = await response.json();
+              setQuestion(data.question);
+            } catch {
+              setQuestion('通信エラーが発生しました。');
+            }
           }}
         >
           AIで生成
