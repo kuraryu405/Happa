@@ -20,6 +20,9 @@ export class Room {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column({ default: false })
+  isGameEnded: boolean;
+  
   @OneToMany(() => Participant, (participant) => participant.room)
   participants: Participant[];
 

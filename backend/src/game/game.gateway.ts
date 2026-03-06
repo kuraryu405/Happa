@@ -6,7 +6,7 @@ import { Server, Socket } from "socket.io";
     origin: "http://localhost:3000",
   }
 })
-export class EvantsGateway implements OnGatewayDisconnect {
+export class EventsGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
