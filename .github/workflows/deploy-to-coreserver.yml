@@ -47,6 +47,7 @@ jobs:
           sudo apt-get install -y lftp
 
       - name: Upload to CoreServer by FTP
+        timeout-minutes: 5
         env:
           FTP_HOST: ${{ secrets.SFTP_HOST }}
           FTP_USER: ${{ secrets.SFTP_USER }}
@@ -67,10 +68,13 @@ jobs:
             exit 1
           fi
 
-          lftp <<EOF
+          timeout 240s lftp <<EOF
           set cmd:fail-exit yes
-          set ftp:ssl-allow true
-          set ssl:verify-certificate no
+          set net:timeout 20
+          set net:max-retries 2
+          set net:reconnect-interval-base 5
+          set ftp:passive-mode yes
+          set ftp:ssl-allow no
           open -u "${FTP_USER}","${FTP_PASSWORD}" -p "${FTP_PORT}" "ftp://${FTP_HOST}"
           mkdir -p "${FTP_WWW_TARGET}"
           mirror --reverse --delete --verbose --only-newer frontend/out/ "${FTP_WWW_TARGET}"
