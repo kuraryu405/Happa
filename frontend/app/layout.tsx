@@ -1,29 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist, Geist_Mono, Moirai_One, Zen_Maru_Gothic } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const moiraiOne = Moirai_One({
-  weight: "400",
-  variable: "--font-moirai-one",
-  subsets: ["latin"],
-});
-
-const zenMaruGothic = Zen_Maru_Gothic({
-  weight: "400",
-  variable: "--font-zen-maru-gothic",
-  subsets: ["latin", "latin-ext"],
-});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -37,15 +14,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="caramellatte">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${moiraiOne.variable} ${zenMaruGothic.variable} antialiased bg-base-100 text-base-content min-h-screen`}
-        style={{ fontFamily: "var(--font-zen-maru-gothic), sans-serif" }}
-      >
+      <body className="antialiased bg-base-100 text-base-content min-h-screen">
         <header className="navbar bg-base-100 shadow-sm fixed top-0 left-0 w-full z-50">
           <Link
             href="/"
             className="text-4xl font-extrabold tracking-wide italic drop-shadow-lg"
-            style={{ fontFamily: "var(--font-moirai-one), sans-serif" }}
           >
             Happa
           </Link>

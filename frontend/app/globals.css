@@ -5,9 +5,9 @@
 }
 
 body {
-  font-family: var(--font-zen-maru-gothic), sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 .font-moirai-one {
-  font-family: var(--font-moirai-one), sans-serif;
+  font-family: system-ui, sans-serif;
 }
