@@ -1,0 +1,83 @@
+name: Deploy to CoreServer
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: coreserver-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      REPO_NAME: ${{ github.event.repository.name }}
+      NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build static frontend
+        working-directory: frontend
+        run: pnpm run build
+
+      - name: Install lftp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
+      - name: Upload to CoreServer by FTP
+        env:
+          FTP_HOST: ${{ secrets.SFTP_HOST }}
+          FTP_USER: ${{ secrets.SFTP_USER }}
+          FTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_WWW_TARGET: ${{ secrets.FTP_WWW_TARGET }}
+          FTP_APEX_TARGET: ${{ secrets.FTP_APEX_TARGET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${FTP_HOST}" ] || [ -z "${FTP_USER}" ] || [ -z "${FTP_PASSWORD}" ] || [ -z "${FTP_PORT}" ]; then
+            echo "Missing FTP connection secrets." >&2
+            exit 1
+          fi
+
+          if [ -z "${FTP_WWW_TARGET}" ] || [ -z "${FTP_APEX_TARGET}" ]; then
+            echo "Missing FTP target path secrets." >&2
+            exit 1
+          fi
+
+          lftp <<EOF
+          set cmd:fail-exit yes
+          set ftp:ssl-allow true
+          set ssl:verify-certificate no
+          open -u "${FTP_USER}","${FTP_PASSWORD}" -p "${FTP_PORT}" "ftp://${FTP_HOST}"
+          mkdir -p "${FTP_WWW_TARGET}"
+          mirror --reverse --delete --verbose --only-newer frontend/out/ "${FTP_WWW_TARGET}"
+          mkdir -p "${FTP_APEX_TARGET}"
+          mirror --reverse --delete --verbose --only-newer frontend/out/ "${FTP_APEX_TARGET}"
+          bye
+          EOF
+
+      - name: Verify public URL
+        run: curl -fsSI "https://kuraryu.jp/${REPO_NAME}/"

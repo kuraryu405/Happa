@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { socket } from "@/lib/socket";
 import RoomModal from "@/components/RoomModal";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function Home() {
   useEffect(() => {
@@ -23,7 +24,7 @@ export default function Home() {
           Happa
         </a>
       </div> */}
-      <img src="/Happalogo.png" alt="logo" className="pt-20 p-2" />
+      <img src={`${basePath}/Happalogo.png`} alt="logo" className="pt-20 p-2" />
 
       <div className="flex flex-col items-center justify-center">
         <RoomModal
