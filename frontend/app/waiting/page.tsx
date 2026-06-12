@@ -5,13 +5,18 @@ import { useState, useEffect } from "react";
 import { socket } from "@/lib/socket";
 
 export default function WaitingPage() {
-  const roomId = sessionStorage.getItem("roomId");
-  const nickname = sessionStorage.getItem("nickname");
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [nickname, setNickname] = useState<string | null>(null);
   const [participants, setParticipants] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    const storedRoomId = sessionStorage.getItem("roomId");
+    const storedNickname = sessionStorage.getItem("nickname");
+    setRoomId(storedRoomId);
+    setNickname(storedNickname);
+
     const handleRoomUpdate = (list: string[]) => {
       setParticipants(list);
     };
@@ -34,7 +39,7 @@ export default function WaitingPage() {
     socket.on("roomContext", handleRoomContext);
     socket.on("yourAdmin", handleYourAdmin);
 
-    socket.emit("joinRoom", { roomId, nickname });
+    socket.emit("joinRoom", { roomId: storedRoomId, nickname: storedNickname });
 
     return () => {
       socket.off("roomUpdate", handleRoomUpdate);
@@ -44,7 +49,7 @@ export default function WaitingPage() {
       socket.off("yourAdmin", handleYourAdmin);
     };
 
-  }, [roomId, nickname, router]);
+  }, [router]);
 
   return (
     <>

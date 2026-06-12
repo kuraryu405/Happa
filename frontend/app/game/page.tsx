@@ -23,12 +23,13 @@ export default function GamePage() {
   const [phase, setPhase] = useState<GamePhase | "error" | null>(null);
   const [questionText, setQuestionText] = useState("");
   const [result, setResult] = useState<{ yes: number; no: number; total: number; percent: number } | null>(null);
-  const [isAdmin] = useState(() => sessionStorage.getItem("isAdmin") === "true");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const router = useRouter();
 
   useEffect(() => {
     const role = sessionStorage.getItem("role");
+    setIsAdmin(sessionStorage.getItem("isAdmin") === "true");
     if (role === "question" || role === "answer") {
       setPhase(role);
     } else {
