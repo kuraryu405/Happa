@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { socket } from "@/lib/socket";
+import { apiOrigin, socket } from "@/lib/socket";
 
 export default function QuestionPage() {
   const [question, setQuestion] = useState("");
@@ -27,9 +27,8 @@ export default function QuestionPage() {
           onClick={async () => {
             setQuestion('AIで質問を生成中（10秒ほどかかります。）');
             try {
-              //ここのlocalhostは後でenvに書く
               const context = sessionStorage.getItem("context") ?? "";
-              const response = await fetch("http://localhost:8000/question", {
+              const response = await fetch(`${apiOrigin}/question`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ context }),

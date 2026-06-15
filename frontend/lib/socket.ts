@@ -1,3 +1,6 @@
 import { io } from "socket.io-client";
 
-export const socket = io("http://localhost:8000");
+export const apiOrigin =
+  (process.env.NEXT_PUBLIC_API_ORIGIN || "http://localhost:8000").replace(/\/$/, "");
+
+export const socket = io(apiOrigin);

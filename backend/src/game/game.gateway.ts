@@ -1,9 +1,10 @@
 import { SubscribeMessage, WebSocketGateway, MessageBody, WebSocketServer, ConnectedSocket, OnGatewayDisconnect } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { corsOrigins } from "../config/cors-origins";
 
 @WebSocketGateway({
   cors: {
-    origin: "http://localhost:3000",
+    origin: corsOrigins,
   }
 })
 export class EventsGateway implements OnGatewayDisconnect {
