@@ -12,6 +12,7 @@ type ResultPageProps = {
 
 export default function ResultPage({ resultData, question, onPlayAgain, isAdmin }: ResultPageProps) {
   const router = useRouter();
+  const percent = Math.round(resultData?.percent ?? 0);
   return (
     <>
       <main className="flex flex-col items-center w-full max-w-2xl mx-auto pt-16 px-8">
@@ -25,11 +26,11 @@ export default function ResultPage({ resultData, question, onPlayAgain, isAdmin 
             <div className="flex-1 flex justify-center">
               <div
                 className="radial-progress"
-                style={{ "--value": resultData?.percent ?? 0 } as React.CSSProperties}
-                aria-valuenow={resultData?.percent ?? 0}
+                style={{ "--value": percent ?? 0 } as React.CSSProperties}
+                aria-valuenow={percent ?? 0}
                 role="progressbar"
               >
-                {resultData?.percent ?? 0}%
+                {percent ?? 0}%
               </div>
             </div>
             <div className="flex-1 flex justify-center">
