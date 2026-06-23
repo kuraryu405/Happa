@@ -54,7 +54,7 @@ export default function WaitingPage() {
   return (
     <>
       <main className="flex flex-col items-center min-h-[calc(100vh-4rem)] p-4">
-        <h1 className="text-2xl font-bold mb-4">待機中</h1>
+        <h1 className="text-2xl font-bold mb-4">{nickname}として待機中</h1>
         <p className="text-base-content/70 mb-4 text-center">他のプレイヤーを待っています...<br />合言葉は"{roomId}"です</p>
         <div className="flex flex-col gap-2 w-full max-w-xs items-center justify-center mb-4">
           <div className="badge badge-lg badge-accent">{participants.length} 人が参加中</div>
