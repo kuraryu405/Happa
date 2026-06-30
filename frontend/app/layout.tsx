@@ -26,8 +26,16 @@ export default function RootLayout({
         <div className="pt-16 pb-20">{children}</div>
         <div className="dock z-50">
           <Link href="/">
-            <svg className="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-              <g fill="currentColor" strokeLinejoin="miter" strokeLinecap="butt">
+            <svg
+              className="size-[1.2em]"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+            >
+              <g
+                fill="currentColor"
+                strokeLinejoin="miter"
+                strokeLinecap="butt"
+              >
                 <polyline
                   points="1 11 12 2 23 11"
                   fill="none"
@@ -59,7 +67,7 @@ export default function RootLayout({
             <span className="dock-label">Home</span>
           </Link>
 
-    <button>
+          {/*<button>
       <svg className="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
         <g fill="currentColor" strokeLinejoin="miter" strokeLinecap="butt">
           <polyline
@@ -111,8 +119,8 @@ export default function RootLayout({
         </g>
       </svg>
       <span className="dock-label">Settings</span>
-    </button>
-  </div>
+    </button>*/}
+        </div>
       </body>
     </html>
   );
