@@ -85,6 +85,7 @@ export class AiService {
 
         messages = [
           ...baseMessages,
+          { role: 'assistant', content: question },
           {
             role: 'user',
             content:
@@ -131,6 +132,7 @@ export class AiService {
 
       messages = [
         ...baseMessages,
+        { role: 'assistant', content: question },
         {
           role: 'user',
           content:
