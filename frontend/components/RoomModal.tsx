@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { socket } from "@/lib/socket";
 
@@ -29,8 +29,15 @@ export default function RoomModal({
   const [error, setError] = useState("");
   const router = useRouter();
 
+  // 最新のフォーム値をrefで保持し、ソケットハンドラ登録は一度だけにする
+  const formValuesRef = useRef({ roomId, nickname, context, mode });
+  useEffect(() => {
+    formValuesRef.current = { roomId, nickname, context, mode };
+  }, [roomId, nickname, context, mode]);
+
   useEffect(() => {
     const handleEnterRoom = () => {
+      const { roomId, nickname, context, mode } = formValuesRef.current;
       sessionStorage.setItem("roomId", roomId);
       sessionStorage.setItem("nickname", nickname);
       if (mode === "create") {
@@ -49,7 +56,7 @@ export default function RoomModal({
       socket.off("enterRoom", handleEnterRoom);
       socket.off("enterRoomError", handleEnterRoomError);
     };
-  }, [router, roomId, nickname, context, mode]);
+  }, [router]);
 
   const openModal = () =>
     (document.getElementById(id) as HTMLDialogElement)?.showModal();
@@ -98,16 +105,19 @@ export default function RoomModal({
               >
                 キャンセル
               </button>
-              <button type="button" className="btn btn-accent"
-              onClick={() =>{
-                setError("");
-                socket.emit("enterRoom", {
-                  roomId,
-                  nickname,
-                  context,
-                  mode,
-                });
-              }}>
+              <button
+                type="button"
+                className="btn btn-accent"
+                onClick={() => {
+                  setError("");
+                  socket.emit("enterRoom", {
+                    roomId,
+                    nickname,
+                    context,
+                    mode,
+                  });
+                }}
+              >
                 {submitLabel}
               </button>
             </div>
