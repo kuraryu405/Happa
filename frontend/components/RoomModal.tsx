@@ -6,7 +6,6 @@ import { socket } from "@/lib/socket";
 import { session } from "@/lib/session";
 
 type RoomModalProps = {
-  id: string;
   title: string;
   submitLabel: string;
   placeholder?: string;
@@ -16,7 +15,6 @@ type RoomModalProps = {
 };
 
 export default function RoomModal({
-  id,
   title,
   submitLabel,
   placeholder = "合言葉",
@@ -30,6 +28,13 @@ export default function RoomModal({
   const [error, setError] = useState("");
   const router = useRouter();
 
+  // 最新のフォーム値をrefで保持し、ソケットハンドラ登録は一度だけにする
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const formValuesRef = useRef({ roomId, nickname, context, mode });
+  useEffect(() => {
+    formValuesRef.current = { roomId, nickname, context, mode };
+  }, [roomId, nickname, context, mode]);
+
   // 同一の socket を複数の RoomModal (作成用・入室用) が共有しており、
   // "enterRoom" イベントは全てのリスナーに届く。
   // 自分が送信したリクエストの応答だけを処理するためのフラグ
@@ -39,6 +44,7 @@ export default function RoomModal({
     const handleEnterRoom = () => {
       if (!pendingRef.current) return; // 他の RoomModal が送信した応答は無視
       pendingRef.current = false;
+      const { roomId, nickname, context, mode } = formValuesRef.current;
       session.setRoomId(roomId);
       session.setNickname(nickname);
       if (mode === "create") {
@@ -59,19 +65,17 @@ export default function RoomModal({
       socket.off("enterRoom", handleEnterRoom);
       socket.off("enterRoomError", handleEnterRoomError);
     };
-  }, [router, roomId, nickname, context, mode]);
+  }, [router]);
 
-  const openModal = () =>
-    (document.getElementById(id) as HTMLDialogElement)?.showModal();
-  const closeModal = () =>
-    (document.getElementById(id) as HTMLDialogElement)?.close();
+  const openModal = () => dialogRef.current?.showModal();
+  const closeModal = () => dialogRef.current?.close();
 
   return (
     <>
       <button className={triggerClassName} onClick={openModal}>
         {triggerLabel}
       </button>
-      <dialog id={id} className="modal">
+      <dialog ref={dialogRef} className="modal">
         <div className="modal-box">
           <h3 className="font-bold text-lg">{title}</h3>
           <p className="py-2">ニックネームと合言葉を入力してください</p>
