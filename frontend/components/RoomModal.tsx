@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { socket } from "@/lib/socket";
 import { session } from "@/lib/session";
@@ -30,8 +30,15 @@ export default function RoomModal({
   const [error, setError] = useState("");
   const router = useRouter();
 
+  // 同一の socket を複数の RoomModal (作成用・入室用) が共有しており、
+  // "enterRoom" イベントは全てのリスナーに届く。
+  // 自分が送信したリクエストの応答だけを処理するためのフラグ
+  const pendingRef = useRef(false);
+
   useEffect(() => {
     const handleEnterRoom = () => {
+      if (!pendingRef.current) return; // 他の RoomModal が送信した応答は無視
+      pendingRef.current = false;
       session.setRoomId(roomId);
       session.setNickname(nickname);
       if (mode === "create") {
@@ -40,6 +47,8 @@ export default function RoomModal({
       router.push("/waiting");
     };
     const handleEnterRoomError = (message: string) => {
+      if (!pendingRef.current) return;
+      pendingRef.current = false;
       setError(message);
     };
 
@@ -104,6 +113,7 @@ export default function RoomModal({
                 className="btn btn-accent"
                 onClick={() => {
                   setError("");
+                  pendingRef.current = true;
                   socket.emit("enterRoom", {
                     roomId,
                     nickname,
