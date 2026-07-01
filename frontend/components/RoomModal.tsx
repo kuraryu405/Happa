@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { socket } from "@/lib/socket";
+import { session } from "@/lib/session";
 
 type RoomModalProps = {
   id: string;
@@ -29,19 +30,12 @@ export default function RoomModal({
   const [error, setError] = useState("");
   const router = useRouter();
 
-  // 最新のフォーム値をrefで保持し、ソケットハンドラ登録は一度だけにする
-  const formValuesRef = useRef({ roomId, nickname, context, mode });
-  useEffect(() => {
-    formValuesRef.current = { roomId, nickname, context, mode };
-  }, [roomId, nickname, context, mode]);
-
   useEffect(() => {
     const handleEnterRoom = () => {
-      const { roomId, nickname, context, mode } = formValuesRef.current;
-      sessionStorage.setItem("roomId", roomId);
-      sessionStorage.setItem("nickname", nickname);
+      session.setRoomId(roomId);
+      session.setNickname(nickname);
       if (mode === "create") {
-        sessionStorage.setItem("context", context);
+        session.setContext(context);
       }
       router.push("/waiting");
     };
@@ -56,7 +50,7 @@ export default function RoomModal({
       socket.off("enterRoom", handleEnterRoom);
       socket.off("enterRoomError", handleEnterRoomError);
     };
-  }, [router]);
+  }, [router, roomId, nickname, context, mode]);
 
   const openModal = () =>
     (document.getElementById(id) as HTMLDialogElement)?.showModal();

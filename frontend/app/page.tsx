@@ -1,20 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { socket } from "@/lib/socket";
+import { leaveAndClean } from "@/lib/session";
 import RoomModal from "@/components/RoomModal";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function Home() {
   useEffect(() => {
-    const staleRoom = sessionStorage.getItem("roomId");
-    if (staleRoom) {
-      socket.emit("leaveRoom", staleRoom);
-      sessionStorage.removeItem("roomId");
-      sessionStorage.removeItem("nickname");
-      sessionStorage.removeItem("role");
-    }
+    leaveAndClean();
   }, []);
 
   return (
@@ -51,7 +45,6 @@ export default function Home() {
 // import { io } from "socket.io-client";
 // import { useEffect} from "react";
 // import { useState } from "react";
-
 
 // const socket = io("http://localhost:8000");
 

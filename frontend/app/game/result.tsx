@@ -1,16 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import type { ResultData } from "@/lib/types";
 
 type ResultPageProps = {
-  resultData: { yes: number; no: number; total: number; percent: number } | null;
+  resultData: ResultData | null;
   question: string;
   onPlayAgain: () => void;
   isAdmin: boolean;
 };
 
-
-export default function ResultPage({ resultData, question, onPlayAgain, isAdmin }: ResultPageProps) {
+export default function ResultPage({
+  resultData,
+  question,
+  onPlayAgain,
+  isAdmin,
+}: ResultPageProps) {
   const router = useRouter();
   const percent = Math.round(resultData?.percent ?? 0);
   return (
@@ -22,7 +27,7 @@ export default function ResultPage({ resultData, question, onPlayAgain, isAdmin 
           </div>
         </div>
         <div className="w-full pt-10">
-          <div className="skeleton h-32 w-full rounded-xl flex items-center justify-center gap-5">
+          <div className="bg-base-200 w-full rounded-xl flex items-center justify-center gap-5 py-8">
             <div className="justify-center">
               <div
                 className="radial-progress"
@@ -34,16 +39,27 @@ export default function ResultPage({ resultData, question, onPlayAgain, isAdmin 
               </div>
             </div>
             <div className="justify-center">
-              <p className="text-2xl font-bold">YES: {resultData?.yes ?? 0}人</p>
+              <p className="text-2xl font-bold">
+                YES: {resultData?.yes ?? 0}人
+              </p>
               <p className="text-2xl font-bold">NO: {resultData?.no ?? 0}人</p>
             </div>
           </div>
         </div>
         <div className="buttons flex justify-center gap-4 pt-10">
-          <button className="btn btn-outline" onClick={() => {
-            router.push("/");
-          }}>トップに戻る</button>
-          {isAdmin && <button className="btn btn-accent" onClick={onPlayAgain}>もう一度遊ぶ</button>}
+          <button
+            className="btn btn-outline"
+            onClick={() => {
+              router.push("/");
+            }}
+          >
+            トップに戻る
+          </button>
+          {isAdmin && (
+            <button className="btn btn-accent" onClick={onPlayAgain}>
+              もう一度遊ぶ
+            </button>
+          )}
         </div>
       </main>
     </>

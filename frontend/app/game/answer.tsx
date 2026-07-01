@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { socket } from "@/lib/socket";
+import { session } from "@/lib/session";
 
 type AnswerPageProps = {
   initialQuestion?: string;
@@ -13,7 +14,7 @@ export default function AnswerPage({ initialQuestion = "" }: AnswerPageProps) {
   const [answered, setAnswered] = useState<boolean>(false);
 
   useEffect(() => {
-    setRoomId(sessionStorage.getItem("roomId"));
+    setRoomId(session.getRoomId());
 
     const handleQuestion = (q: string) => {
       setQuestion(q);
@@ -34,18 +35,26 @@ export default function AnswerPage({ initialQuestion = "" }: AnswerPageProps) {
         </div>
         {question && (
           <div className="flex items-center gap-8 pt-20">
-            <button className="btn btn-outline text-2xl px-10 py-5 min-w-[120px]"
-            disabled={answered}
-            onClick={() => {
-              socket.emit("submitAnswer", { roomId, answer: "no" });
-              setAnswered(true);
-            }}>NO</button>
-            <button className="btn btn-accent text-2xl px-10 py-5 min-w-[120px]"
-            disabled={answered}
-            onClick={() => {
-              socket.emit("submitAnswer", { roomId, answer: "yes" });
-              setAnswered(true);
-            }}>YES</button>
+            <button
+              className="btn btn-outline text-2xl px-10 py-5 min-w-[120px]"
+              disabled={answered}
+              onClick={() => {
+                socket.emit("submitAnswer", { roomId, answer: "no" });
+                setAnswered(true);
+              }}
+            >
+              NO
+            </button>
+            <button
+              className="btn btn-accent text-2xl px-10 py-5 min-w-[120px]"
+              disabled={answered}
+              onClick={() => {
+                socket.emit("submitAnswer", { roomId, answer: "yes" });
+                setAnswered(true);
+              }}
+            >
+              YES
+            </button>
           </div>
         )}
       </main>
