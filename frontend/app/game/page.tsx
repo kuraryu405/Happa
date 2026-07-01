@@ -101,7 +101,9 @@ export default function GamePage() {
   return (
     <>
       {phase === "question" && <QuestionPage />}
-      {phase === "answer" && <AnswerPage initialQuestion={questionText} />}
+      {phase === "answer" && (
+        <AnswerPage key={questionText} question={questionText} />
+      )}
       {phase === "result" && (
         <ResultPage
           resultData={result}

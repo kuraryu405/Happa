@@ -1,29 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { socket } from "@/lib/socket";
 import { session } from "@/lib/session";
 
 type AnswerPageProps = {
-  initialQuestion?: string;
+  question: string;
 };
 
-export default function AnswerPage({ initialQuestion = "" }: AnswerPageProps) {
-  const [roomId, setRoomId] = useState<string | null>(null);
-  const [question, setQuestion] = useState<string>(initialQuestion);
-  const [answered, setAnswered] = useState<boolean>(false);
-
-  useEffect(() => {
-    setRoomId(session.getRoomId());
-
-    const handleQuestion = (q: string) => {
-      setQuestion(q);
-    };
-    socket.on("question", handleQuestion);
-    return () => {
-      socket.off("question", handleQuestion);
-    };
-  }, []);
+export default function AnswerPage({ question }: AnswerPageProps) {
+  const [answered, setAnswered] = useState(false);
 
   return (
     <>
@@ -39,7 +25,10 @@ export default function AnswerPage({ initialQuestion = "" }: AnswerPageProps) {
               className="btn btn-outline text-2xl px-10 py-5 min-w-[120px]"
               disabled={answered}
               onClick={() => {
-                socket.emit("submitAnswer", { roomId, answer: "no" });
+                socket.emit("submitAnswer", {
+                  roomId: session.getRoomId(),
+                  answer: "no",
+                });
                 setAnswered(true);
               }}
             >
@@ -49,7 +38,10 @@ export default function AnswerPage({ initialQuestion = "" }: AnswerPageProps) {
               className="btn btn-accent text-2xl px-10 py-5 min-w-[120px]"
               disabled={answered}
               onClick={() => {
-                socket.emit("submitAnswer", { roomId, answer: "yes" });
+                socket.emit("submitAnswer", {
+                  roomId: session.getRoomId(),
+                  answer: "yes",
+                });
                 setAnswered(true);
               }}
             >
