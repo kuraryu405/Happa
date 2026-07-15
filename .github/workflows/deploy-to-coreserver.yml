@@ -69,6 +69,17 @@ jobs:
             exit 1
           fi
 
+          validate_ftp_target() {
+            target="${1%/}"
+            if [[ "$target" != */"${REPO_NAME}" ]]; then
+              echo "Refusing to deploy ${REPO_NAME} to non-project target: ${1}" >&2
+              exit 1
+            fi
+          }
+
+          validate_ftp_target "${FTP_WWW_TARGET}"
+          validate_ftp_target "${FTP_APEX_TARGET}"
+
           find frontend/out -name "*.map" -type f -delete
 
           timeout 1200s lftp <<EOF
