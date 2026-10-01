@@ -1,15 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
 import { session } from "@/lib/session";
 
 type AnswerPageProps = {
   question: string;
+  questionId: string;
 };
 
-export default function AnswerPage({ question }: AnswerPageProps) {
+export default function AnswerPage({ question, questionId }: AnswerPageProps) {
   const [answered, setAnswered] = useState(false);
+
+  useEffect(() => {
+    const handleDisconnect = () => setAnswered(false);
+    socket.on("disconnect", handleDisconnect);
+    return () => {
+      socket.off("disconnect", handleDisconnect);
+    };
+  }, []);
+
+  const submit = (answer: "yes" | "no") => {
+    if (answered || !questionId || !socket.connected) return;
+
+    socket.emit("submitAnswer", {
+      roomId: session.getRoomId(),
+      answer,
+      questionId,
+      playerId: session.getPlayerId(),
+      playerToken: session.getPlayerToken(),
+    });
+    setAnswered(true);
+  };
 
   return (
     <>
@@ -24,26 +46,14 @@ export default function AnswerPage({ question }: AnswerPageProps) {
             <button
               className="btn btn-outline text-2xl px-10 py-5 min-w-[120px]"
               disabled={answered}
-              onClick={() => {
-                socket.emit("submitAnswer", {
-                  roomId: session.getRoomId(),
-                  answer: "no",
-                });
-                setAnswered(true);
-              }}
+              onClick={() => submit("no")}
             >
               NO
             </button>
             <button
               className="btn btn-accent text-2xl px-10 py-5 min-w-[120px]"
               disabled={answered}
-              onClick={() => {
-                socket.emit("submitAnswer", {
-                  roomId: session.getRoomId(),
-                  answer: "yes",
-                });
-                setAnswered(true);
-              }}
+              onClick={() => submit("yes")}
             >
               YES
             </button>

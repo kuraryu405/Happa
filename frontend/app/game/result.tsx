@@ -7,6 +7,7 @@ type ResultPageProps = {
   resultData: ResultData | null;
   question: string;
   onPlayAgain: () => void;
+  onLeave: () => void;
   isAdmin: boolean;
 };
 
@@ -14,6 +15,7 @@ export default function ResultPage({
   resultData,
   question,
   onPlayAgain,
+  onLeave,
   isAdmin,
 }: ResultPageProps) {
   const router = useRouter();
@@ -50,6 +52,7 @@ export default function ResultPage({
           <button
             className="btn btn-outline"
             onClick={() => {
+              onLeave();
               router.push("/");
             }}
           >

@@ -3,63 +3,103 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { socket } from "@/lib/socket";
-import { session, leaveAndClean } from "@/lib/session";
-import type { ResultData } from "@/lib/types";
+import { joinCurrentRoom, session, leaveAndClean } from "@/lib/session";
+import type { QuestionData, ResultData } from "@/lib/types";
 import QuestionPage from "./question";
 import AnswerPage from "./answer";
 import ResultPage from "./result";
+import { useIsHydrated } from "@/lib/use-is-hydrated";
 
 type GamePhase = "question" | "answer" | "result";
 
 export default function GamePage() {
-  const [phase, setPhase] = useState<GamePhase | "error" | null>(() => {
-    if (typeof window === "undefined") return null;
-    const role = session.getRole();
-    if (role === "question" || role === "answer") return role;
-    return "error";
-  });
-  const [questionText, setQuestionText] = useState("");
+  const [phaseOverride, setPhase] = useState<GamePhase | "error">();
+  const [questionTextOverride, setQuestionText] = useState<string>();
+  const [questionIdOverride, setQuestionId] = useState<string>();
   const [result, setResult] = useState<ResultData | null>(null);
-  // isAdmin はページ内で変化しないため setter 不要
-  const [isAdmin] = useState<boolean>(() =>
-    typeof window !== "undefined" ? session.getIsAdmin() : false,
-  );
+  const [isAdminOverride, setIsAdmin] = useState<boolean>();
+  const isHydrated = useIsHydrated();
+  const storedRole = isHydrated ? session.getRole() : null;
+  const storedQuestionId = isHydrated
+    ? session.getCurrentQuestionId()
+    : "";
+  const phase =
+    phaseOverride ??
+    (!isHydrated
+      ? null
+      : storedRole === "question" || storedRole === "answer"
+        ? storedQuestionId
+          ? "answer"
+          : storedRole
+        : "error");
+  const questionText =
+    questionTextOverride ??
+    (isHydrated ? session.getCurrentQuestion() : "");
+  const questionId = questionIdOverride ?? storedQuestionId;
+  const isAdmin =
+    isAdminOverride ?? (isHydrated ? session.getIsAdmin() : false);
 
   const router = useRouter();
 
   useEffect(() => {
     const handleYourRole = (newRole: string) => {
       session.setRole(newRole);
+      session.clearCurrentQuestion();
       setResult(null);
       setQuestionText("");
+      setQuestionId("");
       if (newRole === "question" || newRole === "answer") {
         setPhase(newRole);
       }
     };
     socket.on("yourRole", handleYourRole);
 
-    const handleQuestion = (q: string) => {
-      setQuestionText(q);
+    const handleQuestion = (q: QuestionData) => {
+      if (!q?.questionId || !q.text) return;
+      session.setCurrentQuestion(q.text);
+      session.setCurrentQuestionId(q.questionId);
+      setQuestionText(q.text);
+      setQuestionId(q.questionId);
       setPhase("answer");
     };
     socket.on("question", handleQuestion);
 
     const handleResult = (data: ResultData) => {
+      session.clearCurrentQuestion();
+      setQuestionId("");
       setResult(data);
       setPhase("result");
     };
     socket.on("result", handleResult);
 
-    const handleBeforeUnload = () => leaveAndClean();
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    const handleYourAdmin = (admin: boolean) => {
+      session.setIsAdmin(admin);
+      setIsAdmin(admin);
+    };
+    socket.on("yourAdmin", handleYourAdmin);
+
+    const handleEnterRoomError = () => {
+      session.clearRoom();
+      router.replace("/");
+    };
+    socket.on("enterRoomError", handleEnterRoomError);
+
+    const handleSocketConnect = () => {
+      joinCurrentRoom();
+    };
+    socket.on("connect", handleSocketConnect);
+
+    if (socket.connected) joinCurrentRoom();
 
     return () => {
       socket.off("yourRole", handleYourRole);
       socket.off("question", handleQuestion);
       socket.off("result", handleResult);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      socket.off("yourAdmin", handleYourAdmin);
+      socket.off("enterRoomError", handleEnterRoomError);
+      socket.off("connect", handleSocketConnect);
     };
-  }, []);
+  }, [router]);
 
   if (phase === "error") {
     return (
@@ -93,8 +133,13 @@ export default function GamePage() {
 
   const handlePlayAgain = () => {
     const roomId = session.getRoomId();
-    if (roomId) {
-      socket.emit("startGame", roomId);
+    const nickname = session.getNickname();
+    if (roomId && nickname) {
+      socket.emit("startGame", {
+        roomId,
+        playerId: session.getPlayerId(),
+        playerToken: session.getPlayerToken(),
+      });
     }
   };
 
@@ -102,13 +147,18 @@ export default function GamePage() {
     <>
       {phase === "question" && <QuestionPage />}
       {phase === "answer" && (
-        <AnswerPage key={questionText} question={questionText} />
+        <AnswerPage
+          key={questionId}
+          question={questionText}
+          questionId={questionId}
+        />
       )}
       {phase === "result" && (
         <ResultPage
           resultData={result}
           question={questionText}
           onPlayAgain={handlePlayAgain}
+          onLeave={leaveAndClean}
           isAdmin={isAdmin}
         />
       )}

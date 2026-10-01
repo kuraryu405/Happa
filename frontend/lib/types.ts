@@ -4,3 +4,8 @@ export type ResultData = {
   total: number;
   percent: number;
 };
+
+export type QuestionData = {
+  questionId: string;
+  text: string;
+};

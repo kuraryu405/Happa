@@ -14,6 +14,11 @@ type RoomModalProps = {
   mode: "create" | "join";
 };
 
+type EnterRoomResponse = {
+  roomId: string;
+  playerToken: string;
+};
+
 export default function RoomModal({
   title,
   submitLabel,
@@ -41,11 +46,23 @@ export default function RoomModal({
   const pendingRef = useRef(false);
 
   useEffect(() => {
-    const handleEnterRoom = () => {
+    const handleEnterRoom = (payload: EnterRoomResponse) => {
       if (!pendingRef.current) return; // 他の RoomModal が送信した応答は無視
+      if (
+        !payload ||
+        typeof payload.roomId !== "string" ||
+        typeof payload.playerToken !== "string" ||
+        !payload.roomId ||
+        !payload.playerToken
+      ) {
+        pendingRef.current = false;
+        setError("入室情報を受け取れませんでした");
+        return;
+      }
       pendingRef.current = false;
-      const { roomId, nickname, context, mode } = formValuesRef.current;
-      session.setRoomId(roomId);
+      const { nickname, context, mode } = formValuesRef.current;
+      session.setRoomId(payload.roomId);
+      session.setPlayerToken(payload.playerToken);
       session.setNickname(nickname);
       if (mode === "create") {
         session.setContext(context);
@@ -116,12 +133,25 @@ export default function RoomModal({
                 type="button"
                 className="btn btn-accent"
                 onClick={() => {
+                  const normalizedRoomId = roomId.trim();
+                  const normalizedNickname = nickname.trim();
+                  if (!normalizedRoomId || !normalizedNickname) {
+                    setError("ニックネームと合言葉を入力してください");
+                    return;
+                  }
                   setError("");
+                  formValuesRef.current = {
+                    roomId: normalizedRoomId,
+                    nickname: normalizedNickname,
+                    context: context.trim(),
+                    mode,
+                  };
                   pendingRef.current = true;
                   socket.emit("enterRoom", {
-                    roomId,
-                    nickname,
-                    context,
+                    roomId: normalizedRoomId,
+                    nickname: normalizedNickname,
+                    playerId: session.getPlayerId(),
+                    context: context.trim(),
                     mode,
                   });
                 }}

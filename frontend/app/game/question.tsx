@@ -6,30 +6,42 @@ import { session } from "@/lib/session";
 
 export default function QuestionPage() {
   const [question, setQuestion] = useState("");
+  const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleSubmit = () => {
     if (!question.trim()) return;
-    socket.emit("askQuestion", { roomId: session.getRoomId(), question });
+    socket.emit("askQuestion", {
+      roomId: session.getRoomId(),
+      question,
+      playerId: session.getPlayerId(),
+      playerToken: session.getPlayerToken(),
+    });
   };
 
   const handleGenerate = async () => {
+    setError("");
     setIsGenerating(true);
     try {
       const response = await fetch(`${apiOrigin}/question`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context: session.getContext() }),
+        body: JSON.stringify({
+          context: session.getContext(),
+          roomId: session.getRoomId(),
+          playerId: session.getPlayerId(),
+          playerToken: session.getPlayerToken(),
+        }),
       });
       if (!response.ok) {
         const err = await response.json();
-        setQuestion(err.message ?? "エラーが発生しました。");
+        setError(err.message ?? "エラーが発生しました。");
         return;
       }
       const data = await response.json();
       setQuestion(data.question);
     } catch {
-      setQuestion("通信エラーが発生しました。");
+      setError("通信エラーが発生しました。");
     } finally {
       setIsGenerating(false);
     }
@@ -44,6 +56,7 @@ export default function QuestionPage() {
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="質問を入力してください"
         />
+        {error && <p className="text-error text-sm">{error}</p>}
         <div className="w-full h-auto flex justify-end gap-2">
           <button
             className="btn btn-accent"

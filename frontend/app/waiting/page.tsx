@@ -3,26 +3,34 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { socket } from "@/lib/socket";
-import { session, leaveAndClean } from "@/lib/session";
+import { joinCurrentRoom, session, leaveAndClean } from "@/lib/session";
+import type { QuestionData } from "@/lib/types";
+import { useIsHydrated } from "@/lib/use-is-hydrated";
 
 export default function WaitingPage() {
-  // roomId・nickname はページ内で変化しないため setter 不要
-  const [roomId] = useState<string | null>(() =>
-    typeof window !== "undefined" ? session.getRoomId() : null,
-  );
-  const [nickname] = useState<string | null>(() =>
-    typeof window !== "undefined" ? session.getNickname() : null,
-  );
   const [participants, setParticipants] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const isHydrated = useIsHydrated();
+  const roomId = isHydrated ? session.getRoomId() : null;
+  const nickname = isHydrated ? session.getNickname() : null;
   const router = useRouter();
 
   useEffect(() => {
+    const storedRoomId = session.getRoomId();
+    const storedNickname = session.getNickname();
+    const playerToken = session.getPlayerToken();
+    if (!storedRoomId || !storedNickname || !playerToken) {
+      session.clearRoom();
+      router.replace("/");
+      return;
+    }
+
     const handleRoomUpdate = (list: string[]) => {
       setParticipants(list);
     };
     const handleYourRole = (role: "question" | "answer") => {
       session.setRole(role);
+      session.clearCurrentQuestion();
     };
     const handleGameStart = () => {
       router.push("/game");
@@ -30,29 +38,52 @@ export default function WaitingPage() {
     const handleRoomContext = (ctx: string) => {
       session.setContext(ctx);
     };
+    const handleQuestion = (question: QuestionData) => {
+      if (!question?.questionId || !question.text) return;
+      session.setCurrentQuestion(question.text);
+      session.setCurrentQuestionId(question.questionId);
+    };
     const handleYourAdmin = (admin: boolean) => {
       setIsAdmin(admin);
       session.setIsAdmin(admin);
+    };
+    const handleEnterRoomError = () => {
+      session.clearRoom();
+      router.replace("/");
+    };
+    const handleSocketConnect = () => {
+      joinCurrentRoom();
     };
     socket.on("roomUpdate", handleRoomUpdate);
     socket.on("yourRole", handleYourRole);
     socket.on("gameStart", handleGameStart);
     socket.on("roomContext", handleRoomContext);
+    socket.on("question", handleQuestion);
     socket.on("yourAdmin", handleYourAdmin);
+    socket.on("enterRoomError", handleEnterRoomError);
 
-    socket.emit("joinRoom", {
-      roomId: session.getRoomId(),
-      nickname: session.getNickname(),
-    });
+    socket.on("connect", handleSocketConnect);
+    if (socket.connected) joinCurrentRoom();
 
     return () => {
       socket.off("roomUpdate", handleRoomUpdate);
       socket.off("yourRole", handleYourRole);
       socket.off("gameStart", handleGameStart);
       socket.off("roomContext", handleRoomContext);
+      socket.off("question", handleQuestion);
       socket.off("yourAdmin", handleYourAdmin);
+      socket.off("enterRoomError", handleEnterRoomError);
+      socket.off("connect", handleSocketConnect);
     };
   }, [router]);
+
+  if (!roomId || !nickname) {
+    return (
+      <main className="flex items-center justify-center min-h-screen">
+        参加情報を確認中...
+      </main>
+    );
+  }
 
   return (
     <>
@@ -93,7 +124,11 @@ export default function WaitingPage() {
               className="btn btn-accent w-1/2"
               onClick={() => {
                 session.clearRole();
-                socket.emit("startGame", roomId);
+                socket.emit("startGame", {
+                  roomId,
+                  playerId: session.getPlayerId(),
+                  playerToken: session.getPlayerToken(),
+                });
               }}
             >
               開始
